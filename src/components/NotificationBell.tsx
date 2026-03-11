@@ -10,6 +10,7 @@ type NotifType = "info" | "success" | "warning" | "error";
 
 interface Notification {
   id: string;
+  user_id: string;  // ← add this line
   title: string;
   message: string;
   type: NotifType;
@@ -77,10 +78,13 @@ export function NotificationBell() {
           event: "INSERT",
           schema: "public",
           table: "notifications",
-          filter: `user_id=eq.${user.id}`,
+          // No server-side filter — filter client-side to avoid realtime RLS issues
         },
         (payload) => {
           const n = payload.new as Notification;
+
+          // Client-side filter — only process notifications for this user
+          if (n.user_id !== user.id) return;
 
           // Prepend to state
           setNotifications(prev => [n, ...prev]);
@@ -117,6 +121,13 @@ export function NotificationBell() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  // ── Polling fallback — re-fetch every 30s in case realtime misses events ────
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, [user]);
 
   // ── Close panel on outside click ────────────────────────────────────────────
@@ -176,7 +187,8 @@ export function NotificationBell() {
       {open && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-11 z-50 w-[380px] rounded-xl border border-gray-200 bg-white shadow-2xl shadow-black/10 overflow-hidden"
+          className="absolute right-0 top-11 z-[9999] w-[380px] rounded-xl border border-gray-200 bg-white shadow-2xl shadow-black/10 overflow-hidden"
+          style={{ position: 'fixed', top: bellRef.current ? bellRef.current.getBoundingClientRect().bottom + 8 : 48, right: 16 }}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3">
