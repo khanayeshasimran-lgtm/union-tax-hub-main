@@ -1,0 +1,19 @@
+name: Daily Lead Rotation
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rotate leads
+        run: |
+          curl -X POST \
+            https://soxutasiwuligsixlxpk.supabase.co/functions/v1/rotate-leads \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "x-trigger-secret: ${{ secrets.CRON_SECRET }}" \
+            -d '{}'

@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 220 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 220 14% 93%;
+    --accent-foreground: 220 20% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 70% 50%;
+
+    --radius: 0.5rem;
+
+    /* Status colors */
+    --status-new: 217 91% 60%;
+    --status-not-answered: 25 95% 53%;
+    --status-follow-up: 45 93% 47%;
+    --status-converted: 142 71% 45%;
+    --status-closed: 220 9% 46%;
+    --status-not-interested: 0 72% 51%;
+    --status-other-firm: 280 60% 50%;
+    --status-wrong-number: 0 0% 45%;
+
+    /* Sidebar */
+    --sidebar-background: 225 25% 8%;
+    --sidebar-foreground: 220 14% 80%;
+    --sidebar-primary: 220 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 20% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 225 15% 16%;
+    --sidebar-ring: 220 70% 50%;
+    --sidebar-muted: 220 10% 46%;
+
+    /* Chart colors */
+    --chart-1: 220 70% 50%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 280 60% 50%;
+    --chart-5: 45 93% 47%;
+
+    /* Success/Warning/Info */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 10%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 225 25% 6%;
+    --foreground: 220 14% 96%;
+
+    --card: 225 25% 8%;
+    --card-foreground: 220 14% 96%;
+
+    --popover: 225 25% 8%;
+    --popover-foreground: 220 14% 96%;
+
+    --primary: 220 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 225 20% 14%;
+    --secondary-foreground: 220 14% 96%;
+
+    --muted: 225 15% 16%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 225 20% 14%;
+    --accent-foreground: 220 14% 96%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 225 15% 16%;
+    --input: 225 15% 16%;
+    --ring: 220 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@layer components {
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .status-new {
+    background-color: hsl(var(--status-new) / 0.12);
+    color: hsl(var(--status-new));
+  }
+
+  .status-not-answered {
+    background-color: hsl(var(--status-not-answered) / 0.12);
+    color: hsl(var(--status-not-answered));
+  }
+
+  .status-follow-up {
+    background-color: hsl(var(--status-follow-up) / 0.12);
+    color: hsl(var(--status-follow-up));
+  }
+
+  .status-converted {
+    background-color: hsl(var(--status-converted) / 0.12);
+    color: hsl(var(--status-converted));
+  }
+
+  .status-closed {
+    background-color: hsl(var(--status-closed) / 0.12);
+    color: hsl(var(--status-closed));
+  }
+
+  .status-not-interested {
+    background-color: hsl(var(--status-not-interested) / 0.12);
+    color: hsl(var(--status-not-interested));
+  }
+
+  .kpi-card {
+    @apply bg-card rounded-xl border p-6 shadow-sm;
+  }
+
+  .data-table-row {
+    @apply border-b transition-colors hover:bg-muted/50;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
