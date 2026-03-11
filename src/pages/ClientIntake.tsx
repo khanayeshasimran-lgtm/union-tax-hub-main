@@ -279,21 +279,22 @@ export default function ClientIntake() {
           full_legal_name: fullName || f.full_legal_name,
           dob: portalProfile.date_of_birth || f.dob,
           filing_status: portalProfile.filing_status || f.filing_status,
-          dependents: (depCount.count ?? portalProfile.number_of_dependents ?? 0).toString(),
-          phone: portalProfile.phone_number || portalProfile.phone || lead?.phone_number || f.phone,
-          email: portalProfile.email || lead?.email || f.email,
-          // Address from client_addresses
-          address: address?.street_address || address?.address || f.address,
-          city: address?.city || f.city,
-          state: address?.state || f.state,
-          zip_code: address?.zip_code || f.zip_code,
-          // Income
-          w2_income: portalProfile.w2_income?.toString() || f.w2_income,
-          form_1099_income: (portalProfile.income_1099 ?? portalProfile.form_1099_income ?? 0).toString(),
-          business_income: portalProfile.business_income?.toString() || f.business_income,
-          other_income: portalProfile.other_income?.toString() || f.other_income,
-          notes: portalProfile.additional_notes
-            ? `[From client portal]\n${portalProfile.additional_notes}`
+          dependents: (depCount.count ?? 0).toString(),
+          // phone = portal "phone" column; email comes from lead (no email col in client_tax_profiles)
+          phone: portalProfile.phone || lead?.phone_number || f.phone,
+          email: lead?.email || f.email,
+          // Address: prefer client_tax_profiles direct fields, fallback to client_addresses
+          address: portalProfile.address || address?.address || f.address,
+          city: portalProfile.city || address?.city || f.city,
+          state: portalProfile.state || address?.state || f.state,
+          zip_code: portalProfile.zip || address?.zip_code || f.zip_code,
+          // Income fields don't exist in client_tax_profiles — agent fills these
+          w2_income: f.w2_income,
+          form_1099_income: f.form_1099_income,
+          business_income: f.business_income,
+          other_income: f.other_income,
+          notes: portalProfile.notes
+            ? `[From client portal]\n${portalProfile.notes}`
             : f.notes,
         }));
         setPortalDataLoaded(true);
@@ -730,14 +731,15 @@ export default function ClientIntake() {
                         <InfoRow label="Middle Name" value={p.middle_name} />
                         <InfoRow label="Last Name" value={p.last_name} />
                         <InfoRow label="Date of Birth" value={p.date_of_birth} />
-                        <InfoRow label="Marital Status" value={p.marital_status || p.filing_status} />
-                        <InfoRow label="Filing Status" value={p.filing_status} />
-                        <InfoRow label="SSN / ITIN (client entered)" value={p.ssn_itin || p.ssn || "—"} />
-                        <InfoRow label="Visa Category" value={p.visa_type || p.visa_category} />
-                        <InfoRow label="Occupation" value={p.occupation || p.current_occupation} />
-                        <InfoRow label="First Entry to USA" value={p.first_entry_date} />
-                        <InfoRow label="Timezone" value={p.timezone} />
+                        <InfoRow label="Gender" value={p.gender} />
+                        <InfoRow label="Marital Status" value={p.marital_status} />
                         <InfoRow label="Date of Marriage" value={p.date_of_marriage} />
+                        <InfoRow label="Filing Status" value={p.filing_status} />
+                        <InfoRow label="SSN / ITIN (client entered)" value={p.ssn_itin} />
+                        <InfoRow label="Visa Type" value={p.visa_type} />
+                        <InfoRow label="Occupation" value={p.occupation} />
+                        <InfoRow label="First Entry to USA" value={p.entry_date_usa} />
+                        <InfoRow label="Timezone" value={p.timezone} />
                       </div>
                     </div>
 
@@ -745,14 +747,14 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={Phone} label="Contact Information" />
                       <div className="grid gap-3 sm:grid-cols-3 text-sm">
-                        <InfoRow label="Mobile" value={p.mobile_number || p.phone_number || p.phone} />
-                        <InfoRow label="Work Number" value={p.work_number} />
-                        <InfoRow label="Email" value={p.email} />
-                        <InfoRow label="Street Address" value={p.street_address || p.address} />
+                        <InfoRow label="Phone" value={p.phone} />
+                        <InfoRow label="Alt Phone" value={p.alt_phone} />
+                        <InfoRow label="Work Phone" value={p.work_phone} />
+                        <InfoRow label="Street Address" value={p.address} />
                         <InfoRow label="Apt / Unit" value={p.apt_number} />
                         <InfoRow label="City" value={p.city} />
                         <InfoRow label="State" value={p.state} />
-                        <InfoRow label="Zip Code" value={p.zip_code} />
+                        <InfoRow label="Zip Code" value={p.zip} />
                       </div>
                     </div>
 
@@ -760,7 +762,7 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={Briefcase} label="Employer Details" />
                       <div className="grid gap-3 sm:grid-cols-2 text-sm">
-                        <InfoRow label="Employer 1" value={p.employer_name_1 || p.employer_name} />
+                        <InfoRow label="Employer 1" value={p.employer_name_1} />
                         <InfoRow label="Employer 2" value={p.employer_name_2} />
                       </div>
                     </div>
@@ -770,9 +772,9 @@ export default function ClientIntake() {
                       <SectionHeader icon={CreditCard} label="Bank Details (Direct Deposit)" />
                       <div className="grid gap-3 sm:grid-cols-2 text-sm">
                         <InfoRow label="Bank Name" value={p.bank_name} />
-                        <InfoRow label="Account Type" value={p.account_type} />
-                        <InfoRow label="Account Number" value={p.account_number} />
-                        <InfoRow label="Routing Number" value={p.routing_number} />
+                        <InfoRow label="Account Type" value={p.bank_account_type} />
+                        <InfoRow label="Account Number" value={p.bank_account_no} />
+                        <InfoRow label="Routing Number" value={p.bank_routing_no} />
                       </div>
                     </div>
 
@@ -780,8 +782,11 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={Heart} label="Insurance" />
                       <div className="rounded-lg border divide-y text-sm">
-                        <FlagRow label="Health Insurance (full/part year)" value={p.health_insurance ?? p.has_health_insurance} />
-                        <FlagRow label="Marketplace / 1095A/B/C Insurance" value={p.marketplace_insurance ?? p.has_marketplace_insurance} />
+                        <FlagRow label="Health Insurance covered (full/part year)" value={p.health_insurance_covered} />
+                        <div className="flex items-center justify-between py-1.5 px-3">
+                          <span className="text-sm">Insurance Type</span>
+                          <span className="text-sm font-medium">{p.insurance_type || "—"}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -789,13 +794,13 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={FileText} label="Schedule A & Deductions" />
                       <div className="rounded-lg border divide-y text-sm">
-                        <FlagRow label="HSA distributions for medical expenses" value={p.hsa_distributions ?? p.has_hsa} />
-                        <FlagRow label="Maternity expenses" value={p.maternity_expenses ?? p.has_maternity} />
-                        <FlagRow label="Real estate taxes (India or US)" value={p.real_estate_tax ?? p.has_real_estate_tax} />
-                        <FlagRow label="Personal property taxes / car tax" value={p.personal_property_tax ?? p.has_personal_property_tax} />
-                        <FlagRow label="Motor vehicle tax (CT state)" value={p.motor_vehicle_tax ?? p.has_motor_vehicle_tax} />
-                        <FlagRow label="Home mortgage interest (India or US)" value={p.home_mortgage ?? p.has_home_mortgage} />
-                        <FlagRow label="Charitable contributions" value={p.charitable_contributions ?? p.has_charitable} />
+                        <FlagRow label="HSA distributions for medical expenses" value={p.hsa_distributions} />
+                        <FlagRow label="Maternity expenses" value={p.maternity_expenses} />
+                        <FlagRow label="Real estate taxes (India or US)" value={p.real_estate_taxes} />
+                        <FlagRow label="Personal property taxes / car tax" value={p.personal_property_taxes} />
+                        <FlagRow label="Motor vehicle tax (CT state)" value={p.motor_vehicle_tax_ct} />
+                        <FlagRow label="Home mortgage interest (India or US)" value={p.home_mortgage_interest} />
+                        <FlagRow label="Charitable contributions" value={p.charitable_contributions} />
                       </div>
                     </div>
 
@@ -803,11 +808,11 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={TrendingUp} label="Other Income Sources" />
                       <div className="rounded-lg border divide-y text-sm">
-                        <FlagRow label="Sold stocks (US or India)" value={p.sold_stocks ?? p.has_stocks} />
-                        <FlagRow label="Interest income (US or India)" value={p.interest_income ?? p.has_interest_income} />
-                        <FlagRow label="Dividend income (US or India)" value={p.dividend_income ?? p.has_dividend} />
-                        <FlagRow label="Rental / Business income (US or India)" value={p.rental_income ?? p.has_rental_income} />
-                        <FlagRow label="IRA / Pension distributions" value={p.ira_distribution ?? p.has_ira_distribution} />
+                        <FlagRow label="Sold stocks (US or India)" value={p.sold_stocks} />
+                        <FlagRow label="Interest income (US or India)" value={p.interest_income} />
+                        <FlagRow label="Dividend income (US or India)" value={p.dividend_income} />
+                        <FlagRow label="Rental / Business income (US or India)" value={p.rental_business_income} />
+                        <FlagRow label="IRA / Pension distributions" value={p.ira_distributions} />
                       </div>
                     </div>
 
@@ -815,35 +820,35 @@ export default function ClientIntake() {
                     <div>
                       <SectionHeader icon={Sliders} label="Adjustments to Income" />
                       <div className="rounded-lg border divide-y text-sm">
-                        <FlagRow label="Relocation / Moving expenses" value={p.relocation_expenses ?? p.has_relocation} />
-                        <FlagRow label="Education expenses (self, spouse, or dependents)" value={p.education_expenses ?? p.has_education} />
-                        <FlagRow label="Student loan interest paid" value={p.student_loan ?? p.has_student_loan} />
-                        <FlagRow label="IRA contribution / Retirement plan" value={p.ira_contribution ?? p.has_ira_contribution} />
+                        <FlagRow label="Relocation / Moving expenses" value={p.relocation_expenses} />
+                        <FlagRow label="Education expenses (self, spouse, or dependents)" value={p.education_expenses} />
+                        <FlagRow label="Student loan interest paid" value={p.student_loan_interest} />
+                        <FlagRow label="IRA contribution / Retirement plan" value={p.ira_contribution} />
                       </div>
                     </div>
 
-                    {/* Additional Notes from portal */}
-                    {p.additional_notes && (
+                    {/* Notes from portal */}
+                    {p.notes && (
                       <div>
                         <SectionHeader icon={FileText} label="Additional Notes (from client)" />
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{p.additional_notes}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{p.notes}</p>
                       </div>
                     )}
                   </>
                 )}
 
-                {/* Spouse */}
-                {portalFull.spouse && (
+                {/* Spouse — embedded in client_tax_profiles (spouse_ prefix columns) */}
+                {p && p.spouse_first_name && (
                   <div>
                     <SectionHeader icon={Users} label="Spouse Information" />
                     <div className="grid gap-3 sm:grid-cols-3 text-sm">
-                      <InfoRow label="First Name" value={portalFull.spouse.first_name} />
-                      <InfoRow label="Middle Name" value={portalFull.spouse.middle_name} />
-                      <InfoRow label="Last Name" value={portalFull.spouse.last_name} />
-                      <InfoRow label="Date of Birth" value={portalFull.spouse.dob || portalFull.spouse.date_of_birth} />
-                      <InfoRow label="Occupation" value={portalFull.spouse.occupation} />
-                      <InfoRow label="Visa Type" value={portalFull.spouse.visa_type} />
-                      <InfoRow label="Tax ID Type" value={portalFull.spouse.tax_id_type} />
+                      <InfoRow label="First Name" value={p.spouse_first_name} />
+                      <InfoRow label="Middle Name" value={p.spouse_middle_name} />
+                      <InfoRow label="Last Name" value={p.spouse_last_name} />
+                      <InfoRow label="Date of Birth" value={p.spouse_dob} />
+                      <InfoRow label="Occupation" value={p.spouse_occupation} />
+                      <InfoRow label="Visa Type" value={p.spouse_visa_type} />
+                      <InfoRow label="Tax ID Type" value={p.spouse_tax_id_type} />
                     </div>
                   </div>
                 )}
